@@ -48,10 +48,7 @@ class _Human {
 
         h = this.HealthValues.Happiness/100<=0.25?h-25:h;
 
-        h += this.age-32;
-
-        if (this.SuperAIDs)
-            h += 10000;
+        h -= this.age-32;
 
         return h;
     }
@@ -74,7 +71,7 @@ class _Human {
             let b = Math.floor(Math.random()*40);
 
             for (const pi in this.Relationships) {
-                if (this.Relationships[pi].Relation.includes("Parent")) {
+                if (this.Relationships[pi] === "Parent") {
                     const pa = Sim.people[pi];
                     if (pa) {
                         if (v2)
@@ -108,7 +105,7 @@ class _Human {
            // Visualisation                         //
           // https://hack-my-mainfra.me/8fe422.png //
          // Block Altogether: [10000]             //
-        // H[2500]A[2500]R[500]B[3500]T[1000]    //
+        // H[2500]A[2500]R[500]B[3500]T[1000]   //
 
         const Block = {
             Health : {
@@ -119,12 +116,12 @@ class _Human {
             Age    : {
                 Pos: 2500,
                 Sp : 2500,
-                Val: (this.age/20)*30,
+                Val: (this.age/20)*50,
             },
             Rand   : {
                 Pos: 5000,
                 Sp : 500,
-                Val: Math.floor(Math.random()*Sim.Roll()?10:15)
+                Val: Math.floor(Math.random()*Sim.Roll()?5:10)
             },
             Blank  : {
                 Pos: 5500,
@@ -147,30 +144,8 @@ class _Human {
             const Max = BV.Pos+BV.Val;
 
             if (Roll>Min && Roll<Max) {
-                if (BI !== "Rand") {
-                    this.dead = true;
-
-                    if (BI === "Health") {
-                        let s;
-
-                        if (this.SuperAIDs)
-                            s = "SUPER AIDS";
-                        
-                        if (!s) {
-                            const sel = ["Diabetes", "Stroke", "HIV", "AIDS", "Cancer", "Poisoning", "Epilepsy", "Hepatitis B"];
-                            s = sel[Math.floor(Math.random()*sel.length)];
-                        }
-
-                        Sim.events.push(`${this.DName}, aged ${this.age}, died from ${s.colour(160)}.`);
-                    }
-
-                    if (BI === "Age") {
-                        Sim.events.push(`${this.DName}, aged ${this.age}, died from old age.`);
-                    }
-                } else {
-                    this.TriggerSuperAIDs();
-                }
-                break;
+                this.dead = true;
+                Sim.events.push(`${this.DName} died from Block ${BI}, aged ${this.age}, rolled ${Roll}`);
             }
         }
     }
@@ -180,27 +155,28 @@ class _Human {
 
         let e;
 
-        if (this.age===5)
-            e = `${this.DName} is starting ${this.gender?"his":"her"} first year of school.`
-
-        if (this.age===13)
-            e = `It's ${this.DName}'s 13th birthday!`;
-        else if (this.age===18)
-            e = `It's ${this.DName}'s 18th birthday!`;
-        else if (this.age===21)
-            e = `It's ${this.DName}'s 21st birthday!`;
-        else if (this.age===100)
-            e = `It's ${this.DName}'s 100th birthday!`;
+        switch (this.age) {
+            case 5:
+                e = `${this.DName} is starting ${this.gender?"his":"her"} first year of school.`
+            case 13:
+                e = `It's ${this.DName}'s 13th birthday!`;
+            case 18:
+                e = `It's ${this.DName}'s 18th birthday!`;
+            case 21:
+                e = `It's ${this.DName}'s 21st birthday! Health: ${this.Health}`;
+            case 100:
+                e = `It's ${this.DName}'s 100th birthday!`;
+         }
         
         if (e)
             Sim.events.push(e);
     }
 
     TriggerSuperAIDs() {
+        console.log(`${this.DName} has caught ${"SUPER AIDS".colour(196)}!`);
+
         this.gender = null;
         this.SuperAIDs = true;
-
-        Sim.events.push(`${this.DName} has caught ${"SUPER AIDS".colour(196)}!`);
     }
 
     RerollGeneration() {
